@@ -10,8 +10,10 @@ on:
 
 # Releases need permissions to read and write the repository contents.
 # GitHub considers creating releases and uploading assets as writing contents.
+# Additionally, we need to write attestations for signed artifacts.
 permissions:
   contents: write
+  attestations: write
 
 jobs:
   goreleaser:
@@ -43,3 +45,8 @@ jobs:
           # GitHub sets the GITHUB_TOKEN secret automatically.
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
+
+      - uses: actions/attest-build-provenance@977bb373ede98d70efdf65b84cb5f73e068dcc2a # v3.0.0
+        with:
+          subject-path: 'dist/terraform-provider-github_*.zip'
+          subject-checksums: 'dist/terraform-provider-github_*_SHA256SUMS'
