@@ -3,10 +3,11 @@ name: GitHub Actions CI
 on:
   push:
     branches: [main]
-  pull_request: {}
+  pull_request:
 
 jobs:
   ci:
+    name: Continuous Integration
     runs-on: ubuntu-latest
     env:
       GITHUB_TEST_ORGANIZATION: 'kfcampbell-terraform-provider'
@@ -22,8 +23,25 @@ jobs:
       - run: make build
       - run: make test
 
+  generate-matrix:
+    name: Generate Test Matrix
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      
+      - name: Generate test matrix
+        id: set-matrix
+        run: |
+          TESTS=$(find tests -mindepth 1 -maxdepth 1 -type d -exec basename {} \; | jq -R -s -c 'split("\n")[:-1]')
+          echo "matrix=${TESTS}" >> $GITHUB_OUTPUT
+          echo "Found test directories: ${TESTS}"
+
   tests:
-    needs: ci
+    name: Run Terraform Tests
+    needs: [ci, generate-matrix]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -31,11 +49,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        tests: [stack_01] # name of test folder in ./tests/. Extend as needed.
-    
-    defaults:
-      run:
-        working-directory: ./tests/${{ matrix.tests }}
+        tests: ${{ fromJson(needs.generate-matrix.outputs.matrix) }}
     
     steps:
       - name: Checkout
@@ -52,17 +66,28 @@ jobs:
 
       - name: Setup dev overrides
         run: |
-          mkdir -p ~/.terraformrc
-          cat > ~/.terraformrc << 'EOF'
+          ROOT_DIR=$(pwd)
+          cat > ~/.terraformrc << EOF
           provider_installation {
             dev_overrides {
-              "integrations/github" = "$(pwd)"
+              "integrations/github" = "${ROOT_DIR}"
             }
             direct {}
           }
           EOF
+ 
+      - name: Verify dev overrides setup
+        run: cat ~/.terraformrc
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@b9cd54a3c349d3f38e8881555d616ced269862dd # v3.1.2
+        with:
+          terraform_version: 1.x
+      
+      - name: Check Terraform version
+        run: terraform version
 
       - name: Test with terraform (this should NOT fail with SDK validation errors)
         run: |
-          terraform init || echo "Init failed - expected for dev overrides"
-          terraform validate
+          terraform -chdir=./tests/${{ matrix.tests }} init || echo "Init failed - expected for dev overrides"
+          terraform -chdir=./tests/${{ matrix.tests }} validate
