@@ -24,18 +24,10 @@ jobs:
         include:
         - language: actions
           build-mode: none
-          queries: security-and-quality
-          config: |
-            paths:
-              - ".github/workflows"
-            paths-ignore:
-              - "**/*.md"
+          queries: security-extended # can be 'default' (use empty for 'default'), 'security-and-quality', 'security-extended'
         - language: go
           build-mode: autobuild
-          queries: ''
-          config: |
-            paths-ignore:
-              - "**/*.md"     
+          queries: '' # will be used 'default' queries
 
     steps:
       - name: Checkout repository
@@ -56,8 +48,6 @@ jobs:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix['build-mode'] }}
           queries: ${{ matrix.queries }}
-          config: ${{ matrix.config }}
-          debug: true
 
       - name: Autobuild
         uses: github/codeql-action/autobuild@4e94bd11f71e507f7f87df81788dff88d1dacbfb # v4.31.0
