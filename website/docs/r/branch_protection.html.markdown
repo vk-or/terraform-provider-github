@@ -87,7 +87,7 @@ resource "github_team_repository" "example" {
 }
 ```
 
-## Example Usage - Status Check with job_name and/or job_id
+### Example Usage - Status Check with job_name and/or job_id
 
 Given the following workflow:
 
@@ -122,7 +122,7 @@ resource "github_branch_protection" "example" {
   }
 }
 ```
-## Example Usage - Status Check with Matrix Jobs
+### Example Usage - Status Check with Matrix Jobs
 For example, given the following workflow:
 ```yaml
 ...
@@ -160,7 +160,7 @@ resource "github_branch_protection" "example" {
 }
 ```
 
-## Example Usage - Status Check with Matrix Jobs (No Job Name)
+### Example Usage - Status Check with Matrix Jobs (No Job Name)
 
 If the workflow does **not** have a `name` attribute:
 ```yaml
@@ -198,7 +198,7 @@ resource "github_branch_protection" "example" {
 }
 ```
 
-## Example Usage - Status Check with Reusable Workflows
+### Example Usage - Status Check with Reusable Workflows
 
 When using reusable workflows, the status check context follows the pattern: `<calling_workflow_job> / <called_workflow_job>`.
 If the caller or called workflow job has a `name` attribute, use the job name. If it doesn't have a `name` attribute, use the `job_id`.
@@ -240,7 +240,7 @@ resource "github_branch_protection" "example" {
 }
 ```
 
-## Example Usage - Status Check with Reusable Workflows (No Job Names)
+### Example Usage - Status Check with Reusable Workflows (No Job Names)
 
 If the workflows do **not** have `name` attributes:
 
